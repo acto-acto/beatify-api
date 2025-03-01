@@ -1,13 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
 import { AllTracksService } from './all-tracks.service';
-import { Observable } from 'rxjs';
 
 @Controller('all-tracks')
 export class AllTracksController {
   constructor(private readonly allTracksService: AllTracksService) {}
 
   @Get()
-  getAllTracks(): Observable<any> {
+  async getAllTracks() {
     return this.allTracksService.getAllTracks();
+  }
+
+  @Get('refresh')
+  async refreshTracks() {
+    return this.allTracksService.refreshTracks();
   }
 }

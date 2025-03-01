@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String
+  email String  @unique
+}
+
+model Track {
+  id                    String   @id
+  name                  String
+  duration              Int
+  audio                 String?
+  image                 String?
+  artist_id             String
+  artist_name           String
+  album_name            String?
+  album_id              String?
+  release_date          String?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+}
