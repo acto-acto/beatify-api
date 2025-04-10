@@ -8,8 +8,6 @@ export class CookieService {
 
   private readonly cookieDomain =
     this.configService.get<string>('COOKIE_DOMAIN') ?? 'localhost';
-  private readonly secureCookie =
-    this.configService.get('NODE_ENV') === 'production';
 
   setTokenCookies(
     res: Response,
@@ -18,8 +16,8 @@ export class CookieService {
   ): void {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: this.secureCookie,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       domain: this.cookieDomain,
       maxAge: 60 * 60 * 1000,
       path: '/',
@@ -27,8 +25,8 @@ export class CookieService {
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: this.secureCookie,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       domain: this.cookieDomain,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/api/auth/refresh',
@@ -38,8 +36,8 @@ export class CookieService {
   clearTokenCookies(res: Response): void {
     res.cookie('access_token', '', {
       httpOnly: true,
-      secure: this.secureCookie,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       domain: this.cookieDomain,
       maxAge: 0,
       path: '/',
@@ -47,8 +45,8 @@ export class CookieService {
 
     res.cookie('refresh_token', '', {
       httpOnly: true,
-      secure: this.secureCookie,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       domain: this.cookieDomain,
       maxAge: 0,
       path: '/api/auth/refresh',
