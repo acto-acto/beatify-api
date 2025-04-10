@@ -5,9 +5,16 @@ import { AllTracksModule } from './all-tracks/all-tracks.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
-  imports: [AllTracksModule, PrismaModule, UserModule, AuthModule],
+  imports: [
+    AllTracksModule,
+    PrismaModule,
+    UserModule,
+    AuthModule,
+    CommonModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
