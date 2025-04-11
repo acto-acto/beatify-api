@@ -49,7 +49,7 @@ export class CookieService {
       sameSite: 'none',
       domain: this.cookieDomain,
       maxAge: 0,
-      path: '/api/auth/refresh',
+      path: '/auth/refresh',
     });
   }
 }

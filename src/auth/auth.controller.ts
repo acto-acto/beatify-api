@@ -8,12 +8,15 @@ import {
   UnauthorizedException,
   Get,
   Req,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CookieService } from 'src/common/cookie.service';
 import { LoginDto } from './dto/login.dto';
 import { SignUpDto } from './dto/sign-up.dto';
-import { Response, Request } from 'express';
+import { Response, Request as ExpressRequest } from 'express';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -55,9 +58,11 @@ export class AuthController {
     return { message: 'Account Successfully Logged In' };
   }
 
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
+  async logout(@Request() req, @Res({ passthrough: true }) res: Response) {
+    this.authService.invalidateTokens(req.user.userId);
     this.cookieService.clearTokenCookies(res);
 
     return { message: 'Logged Out Successfully' };
@@ -65,7 +70,7 @@ export class AuthController {
 
   @Get('refresh')
   async refreshToken(
-    @Req() req: Request,
+    @Req() req: ExpressRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies['refresh_token'];

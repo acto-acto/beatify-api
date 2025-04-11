@@ -97,4 +97,11 @@ export class AuthService {
 
     return { access_token: accessToken, refresh_token: refreshToken };
   }
+
+  async invalidateTokens(userId: string) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refresh_token: '' },
+    });
+  }
 }
