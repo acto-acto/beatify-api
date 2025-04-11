@@ -29,7 +29,7 @@ export class CookieService {
       sameSite: 'none',
       domain: this.cookieDomain,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/api/auth/refresh',
+      path: '/auth/refresh',
     });
   }
 
