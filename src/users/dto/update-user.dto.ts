@@ -1,11 +1,16 @@
 import { IsOptional, IsString } from 'class-validator';
+import { Multer } from 'multer';
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  user_name?: string;
 
   @IsOptional()
   @IsString()
-  avatarUrl?: string;
+  full_name?: string;
+
+  @IsOptional()
+  @IsString()
+  avatar_url?: string;
 }
