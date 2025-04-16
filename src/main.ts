@@ -8,7 +8,7 @@ async function bootstrap() {
     origin: ['http://localhost:3000', 'https://beatify-one.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-requires-auth'],
   });
   app.use(cookieParser());
   await app.listen(process.env.PORT ?? 3000);
