@@ -29,6 +29,14 @@ export class UserService {
       throw new BadRequestException('Username already exists');
     }
 
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (existingEmail && existingEmail.id !== userId) {
+      throw new BadRequestException('Email already exists');
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
       data: {
