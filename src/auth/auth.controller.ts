@@ -17,6 +17,9 @@ import { LoginDto } from './dto/login.dto';
 import { SignUpDto } from './dto/sign-up.dto';
 import { Response, Request as ExpressRequest } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -88,5 +91,20 @@ export class AuthController {
     );
 
     return { message: 'Tokens Refreshed Successfully' };
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('verify-otp')
+  verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyOtp(dto);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }

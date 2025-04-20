@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Multer } from 'multer';
 import { FileUploadService } from 'src/common/file-upload.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('users')
 export class UserController {
@@ -63,5 +64,11 @@ export class UserController {
       }
     }
     return this.userService.update(req.user.userId, updateUserDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('change-password')
+  changePassword(@Request() req, @Body() dto: ChangePasswordDto) {
+    return this.userService.changePassword(req.user.userId, dto);
   }
 }

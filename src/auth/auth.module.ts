@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CookieService } from 'src/common/cookie.service';
+import { MailService } from 'src/common/mail.service';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { CookieService } from 'src/common/cookie.service';
     ConfigModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, CookieService],
+  providers: [AuthService, JwtStrategy, CookieService, MailService],
   exports: [JwtStrategy],
 })
 export class AuthModule {}

@@ -29,14 +29,17 @@ model Track {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  user_name     String   @unique
-  password      String
-  full_name     String?
-  avatar_url    String?
-  refresh_token String?
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id                     String   @id @default(uuid())
+  email                  String   @unique
+  user_name              String   @unique
+  password               String
+  full_name              String
+  avatar_url             String?  @unique
+  refresh_token          String?  @unique
+  reset_token            String?  @unique
+  reset_otp              String?  @unique
+  reset_otp_expiry       DateTime?
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
 }
 
