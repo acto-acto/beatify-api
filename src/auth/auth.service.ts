@@ -140,7 +140,7 @@ export class AuthService {
     }
 
     const frontendBaseUrl = this.configService.get('FRONTEND_URL');
-    const resetUrl = `${frontendBaseUrl}/reset-password?token=${encodeURIComponent(user.reset_token || '')}`;
+    const resetUrl = `${frontendBaseUrl}/auth/reset-password?token=${encodeURIComponent(user.reset_token || '')}`;
 
     return {
       message: 'OTP is valid',

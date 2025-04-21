@@ -16,7 +16,7 @@ export class MailService {
     token: string,
   ) {
     const frontendBaseUrl = this.configService.get('FRONTEND_URL');
-    const resetUrl = `${frontendBaseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const resetUrl = `${frontendBaseUrl}/auth/reset-password?token=${encodeURIComponent(token)}`;
 
     const html = `
       <h3>Hello ${user_name},</h3>
