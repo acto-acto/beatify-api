@@ -60,11 +60,11 @@ export class AuthService {
       where: { email: dto.email },
     });
 
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) throw new BadRequestException('Invalid credentials');
 
     const pwMatches = await bcrypt.compare(dto.password, user.password);
 
-    if (!pwMatches) throw new UnauthorizedException('Invalid credentials');
+    if (!pwMatches) throw new BadRequestException('Invalid credentials');
 
     return this.generateTokens(user.id, user.email);
   }
