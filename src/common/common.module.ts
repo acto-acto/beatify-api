@@ -13,12 +13,11 @@ import { MailService } from './mail.service';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         transport: {
-          host:
-            config.get<string>('MAILTRAP_HOST') || 'sandbox.smtp.mailtrap.io',
-          port: config.get<number>('MAILTRAP_PORT') || 587,
+          host: config.get<string>('SMTP_HOST'),
+          port: config.get<number>('SMTP_PORT'),
           auth: {
-            user: process.env.MAILTRAP_USER,
-            pass: process.env.MAILTRAP_PASS,
+            user: config.get<string>('SMTP_USER'),
+            pass: config.get<string>('SMTP_PASS'),
           },
         },
         defaults: {

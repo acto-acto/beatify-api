@@ -9,8 +9,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Track {
@@ -39,6 +39,7 @@ model User {
   reset_token            String?  @unique
   reset_otp              String?  @unique
   reset_otp_expiry       DateTime?
+  playlists              String[] @default([])
   created_at             DateTime @default(now())
   updated_at             DateTime @updatedAt
 }

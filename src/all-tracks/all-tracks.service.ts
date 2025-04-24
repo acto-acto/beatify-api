@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import { lastValueFrom, map } from 'rxjs';
 
 @Injectable()
-export class AllTracksService implements OnModuleInit {
+export class AllTracksService {
   private prisma: PrismaClient;
 
   constructor(
@@ -18,10 +18,6 @@ export class AllTracksService implements OnModuleInit {
   private readonly apiURL = this.configService.get<string>('JAMENDO_API_URL');
   private readonly clientId =
     this.configService.get<string>('JAMENDO_CLIENT_ID');
-
-  async onModuleInit() {
-    await this.syncTracksWithDatabase();
-  }
 
   async syncTracksWithDatabase(): Promise<void> {
     try {
@@ -39,9 +35,10 @@ export class AllTracksService implements OnModuleInit {
       }));
 
       for (const track of tracks) {
+        const { id, ...dataWithoutId } = track;
         await this.prisma.track.upsert({
           where: { id: track.id },
-          update: track,
+          update: dataWithoutId,
           create: track,
         });
       }
