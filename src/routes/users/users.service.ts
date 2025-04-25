@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcryptjs';
@@ -22,33 +22,41 @@ export class UserService {
         full_name: true,
         avatar_url: true,
         created_at: true,
+        last_player_state: true,
       },
     });
   }
 
   async update(userId: string, dto: UpdateUserDto) {
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { user_name: dto.user_name },
-    });
-
-    if (existingUsername && existingUsername.id !== userId) {
-      throw new BadRequestException('Username already exists');
+    if (dto.user_name) {
+      const existingUsername = await this.prisma.user.findUnique({
+        where: { user_name: dto.user_name },
+      });
+      if (existingUsername && existingUsername.id !== userId) {
+        throw new BadRequestException('Username already exists');
+      }
     }
 
-    const existingEmail = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (existingEmail && existingEmail.id !== userId) {
-      throw new BadRequestException('Email already exists');
+    if (dto.email) {
+      const existingEmail = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (existingEmail && existingEmail.id !== userId) {
+        throw new BadRequestException('Email already exists');
+      }
     }
+
+    const transformedData = {
+      ...dto,
+      updated_at: new Date(),
+      last_player_state: dto.last_player_state
+        ? JSON.parse(JSON.stringify(dto.last_player_state))
+        : undefined,
+    };
 
     return this.prisma.user.update({
       where: { id: userId },
-      data: {
-        ...dto,
-        updated_at: new Date(),
-      },
+      data: transformedData,
       select: {
         id: true,
         email: true,

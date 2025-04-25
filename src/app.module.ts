@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AllTracksModule } from './all-tracks/all-tracks.module';
+import { AllTracksModule } from './routes/tracks/tracks.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { UserModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
+import { UserModule } from './routes/users/users.module';
 import { CommonModule } from './common/common.module';
+import { AuthModule } from './routes/auth/auth.module';
 
 @Module({
   imports: [
