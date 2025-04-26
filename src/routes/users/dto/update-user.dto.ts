@@ -25,5 +25,6 @@ export class UpdateUserDto {
     playing_track: Track | null;
     playlist: Playlist | null;
     playing_track_index: number;
+    is_minimised: boolean;
   }>;
 }

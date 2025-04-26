@@ -46,17 +46,37 @@ export class UserService {
       }
     }
 
-    const transformedData = {
+    let stringifiedLastPlayerState;
+    let lastPlayerState;
+
+    if (dto.last_player_state) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { last_player_state: true },
+      });
+
+      stringifiedLastPlayerState = JSON.parse(
+        JSON.stringify(dto.last_player_state),
+      );
+
+      lastPlayerState = {
+        ...(typeof user?.last_player_state === 'object' &&
+        user?.last_player_state
+          ? user.last_player_state
+          : {}),
+        ...stringifiedLastPlayerState,
+      };
+    }
+
+    const transformedDto = {
       ...dto,
       updated_at: new Date(),
-      last_player_state: dto.last_player_state
-        ? JSON.parse(JSON.stringify(dto.last_player_state))
-        : undefined,
+      ...(dto.last_player_state && { last_player_state: lastPlayerState }),
     };
 
     return this.prisma.user.update({
       where: { id: userId },
-      data: transformedData,
+      data: transformedDto,
       select: {
         id: true,
         email: true,
