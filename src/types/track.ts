@@ -4,8 +4,8 @@ export type Track = {
   duration: number;
   audio: string;
   image: string;
-  artist_id: string;
-  artist_name: string;
-  album_name: string;
-  album_id: string;
+  artistId: string;
+  artistName: string;
+  albumName: string;
+  albumId: string;
 };

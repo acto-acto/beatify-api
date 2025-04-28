@@ -14,6 +14,7 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from 'src/common/mail.service';
 import { ConfigService } from '@nestjs/config';
+import { profile } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -24,45 +25,54 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async signup(dto: SignUpDto) {
+  async signup(requestPayload: SignUpDto) {
     const existingEmail = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { email: requestPayload.email },
+      select: { email: true },
     });
 
     if (existingEmail) {
       throw new BadRequestException('Email already exists');
     }
 
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { user_name: dto.user_name },
+    const existingUsername = await this.prisma.profile.findUnique({
+      where: { userName: requestPayload.userName },
+      select: { userName: true },
     });
 
     if (existingUsername) {
       throw new BadRequestException('Username already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(requestPayload.password, 10);
 
     const user = await this.prisma.user.create({
       data: {
-        email: dto.email,
-        user_name: dto.user_name,
-        full_name: dto.full_name,
+        email: requestPayload.email,
         password: hashedPassword,
+        profile: {
+          create: {
+            userName: requestPayload.userName,
+            fullName: requestPayload.fullName,
+          },
+        },
       },
     });
 
     return this.generateTokens(user.id, user.email);
   }
 
-  async login(dto: LoginDto) {
+  async login(requestPayload: LoginDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { email: requestPayload.email },
     });
 
     if (!user) throw new BadRequestException('Invalid credentials');
 
-    const pwMatches = await bcrypt.compare(dto.password, user.password);
+    const pwMatches = await bcrypt.compare(
+      requestPayload.password,
+      user.password,
+    );
 
     if (!pwMatches) throw new BadRequestException('Invalid credentials');
 
@@ -77,7 +87,7 @@ export class AuthService {
         where: { id: payload.sub },
       });
 
-      if (!user || user.refresh_token !== refreshToken) {
+      if (!user || user.refreshToken !== refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
@@ -87,9 +97,20 @@ export class AuthService {
     }
   }
 
-  async forgotPassword(dto: ForgotPasswordDto) {
+  async forgotPassword(requestPayload: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { email: requestPayload.email },
+      select: {
+        id: true,
+        email: true,
+        resetOtp: true,
+        resetToken: true,
+        profile: {
+          select: {
+            userName: true,
+          },
+        },
+      },
     });
     if (!user)
       throw new BadRequestException('No user exists with the provided email.');
@@ -107,17 +128,17 @@ export class AuthService {
     });
 
     await this.prisma.user.update({
-      where: { email: dto.email },
+      where: { email: requestPayload.email },
       data: {
-        reset_token: token,
-        reset_otp: otp,
-        reset_otp_expiry: otpExpiry,
+        resetToken: token,
+        resetOtp: otp,
+        resetOtpExpiry: otpExpiry,
       },
     });
 
     await this.mailService.sendResetPasswordEmail(
       user.email,
-      user.user_name,
+      user.profile?.userName ?? 'dear user',
       otp,
       token,
     );
@@ -125,57 +146,59 @@ export class AuthService {
     return { message: 'Reset instructions sent to your email' };
   }
 
-  async verifyOtp(dto: VerifyOtpDto) {
+  async verifyOtp(requestPayload: VerifyOtpDto) {
     const user = await this.prisma.user.findUnique({
-      where: { reset_otp: dto.otp },
+      where: { resetOtp: requestPayload.otp },
+      select: { resetOtp: true, resetOtpExpiry: true, resetToken: true },
     });
 
     if (
       !user ||
-      user.reset_otp !== dto.otp ||
-      !user.reset_otp_expiry ||
-      user.reset_otp_expiry < new Date()
+      user.resetOtp !== requestPayload.otp ||
+      !user.resetOtpExpiry ||
+      user.resetOtpExpiry < new Date()
     ) {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
     const frontendBaseUrl = this.configService.get('FRONTEND_URL');
-    const resetUrl = `${frontendBaseUrl}/auth/reset-password?token=${encodeURIComponent(user.reset_token || '')}`;
+    const resetUrl = `${frontendBaseUrl}/auth/reset-password?token=${encodeURIComponent(user.resetToken || '')}`;
 
     return {
       message: 'OTP is valid',
-      reset_url: resetUrl,
+      resetUrl: resetUrl,
     };
   }
 
-  async resetPassword(dto: ResetPasswordDto) {
+  async resetPassword(requestPayload: ResetPasswordDto) {
     let userId = '';
 
-    if (dto.token) {
+    if (requestPayload.token) {
       try {
-        const payload = await this.jwtService.verifyAsync(dto.token);
+        const payload = await this.jwtService.verifyAsync(requestPayload.token);
         userId = payload.sub;
       } catch (e) {
         throw new BadRequestException('Invalid or expired token');
       }
     }
 
-    const isNewPasswordSame = dto.new_password === dto.confirm_new_password;
+    const isNewPasswordSame =
+      requestPayload.newPassword === requestPayload.confirmNewPassword;
     if (!isNewPasswordSame) {
       throw new BadRequestException(
         'New password and confirm new password do not match',
       );
     }
 
-    const hashedPassword = await bcrypt.hash(dto.new_password, 10);
+    const hashedPassword = await bcrypt.hash(requestPayload.newPassword, 10);
 
     await this.prisma.user.update({
       where: { id: userId },
       data: {
         password: hashedPassword,
-        reset_token: null,
-        reset_otp: null,
-        reset_otp_expiry: null,
+        resetToken: null,
+        resetOtp: null,
+        resetOtpExpiry: null,
       },
     });
 
@@ -195,7 +218,7 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refresh_token: refreshToken },
+      data: { refreshToken: refreshToken },
     });
 
     return { access_token: accessToken, refresh_token: refreshToken };
@@ -204,7 +227,7 @@ export class AuthService {
   async invalidateTokens(userId: string) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refresh_token: null },
+      data: { refreshToken: null },
     });
   }
 }

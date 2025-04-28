@@ -5,8 +5,8 @@ export class ResetPasswordDto {
   token?: string;
 
   @MinLength(8)
-  new_password: string;
+  newPassword: string;
 
   @MinLength(8)
-  confirm_new_password: string;
+  confirmNewPassword: string;
 }

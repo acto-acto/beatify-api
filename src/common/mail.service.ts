@@ -11,7 +11,7 @@ export class MailService {
 
   async sendResetPasswordEmail(
     email: string,
-    user_name: string,
+    userName: string,
     otp: string,
     token: string,
   ) {
@@ -19,7 +19,7 @@ export class MailService {
     const resetUrl = `${frontendBaseUrl}/auth/reset-password?token=${encodeURIComponent(token)}`;
 
     const html = `
-      <h3>Hello ${user_name},</h3>
+      <h3>Hello ${userName},</h3>
       <p>You requested to reset your password. You can do it in two ways:</p>
       <p><strong>Option 1: Enter the OTP</strong><br/><b>${otp}</b></p>
       <p><strong>Option 2: Use the reset link below</strong><br/>
@@ -29,7 +29,7 @@ export class MailService {
     `;
 
     const text = `
-      Hello ${user_name},
+      Hello ${userName},
 
       You requested to reset your password. You can do it in two ways:
 

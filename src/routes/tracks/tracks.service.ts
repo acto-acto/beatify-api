@@ -28,10 +28,10 @@ export class AllTracksService {
         duration: track.duration,
         audio: track.audio || null,
         image: track.image || null,
-        artist_id: track.artist_id,
-        artist_name: track.artist_name,
-        album_name: track.album_name || null,
-        album_id: track.album_id || null,
+        artistId: track.artist_id,
+        artistName: track.artist_name,
+        albumName: track.album_name || null,
+        albumId: track.album_id || null,
       }));
 
       for (const track of tracks) {

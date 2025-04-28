@@ -19,29 +19,37 @@ model Track {
   duration              Int
   audio                 String?
   image                 String?
-  artist_id             String
-  artist_name           String
-  album_name            String?
-  album_id              String?
-  release_date          String?
-  created_at            DateTime @default(now())
-  updated_at            DateTime @updatedAt
+  artistId              String
+  artistName            String
+  albumName             String?
+  albumId               String?
+  releaseDate           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model User {
   id                     String     @id @default(uuid())
   email                  String     @unique
-  user_name              String     @unique
   password               String
-  full_name              String
-  avatar_url             String?    @unique
-  refresh_token          String?    @unique
-  reset_token            String?    @unique
-  reset_otp              String?    @unique
-  reset_otp_expiry       DateTime?
-  playlists              String[]   @default([])
-  created_at             DateTime   @default(now())
-  updated_at             DateTime   @updatedAt
-  last_player_state      Json?
+  refreshToken           String?    @unique
+  resetToken             String?    @unique
+  resetOtp               String?    @unique
+  resetOtpExpiry         DateTime?
+  profile                Profile?  
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+}
+
+model Profile {
+  id                     String     @id @default(uuid())
+  userName               String     @unique
+  fullName               String
+  avatarUrl              String?    @unique
+  lastPlayerState        Json?
+  user                   User       @relation(fields: [userId], references: [id])
+  userId                 String     @unique
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 }
 

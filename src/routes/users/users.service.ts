@@ -16,79 +16,83 @@ export class UserService {
     return this.prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true,
         email: true,
-        user_name: true,
-        full_name: true,
-        avatar_url: true,
-        created_at: true,
-        last_player_state: true,
+        profile: true,
       },
     });
   }
 
-  async update(userId: string, dto: UpdateUserDto) {
-    if (dto.user_name) {
-      const existingUsername = await this.prisma.user.findUnique({
-        where: { user_name: dto.user_name },
+  async update(userId: string, requestPayload: UpdateUserDto) {
+    if (requestPayload.profile?.userName) {
+      const existingUsername = await this.prisma.profile.findUnique({
+        where: { userName: requestPayload.profile.userName },
       });
-      if (existingUsername && existingUsername.id !== userId) {
+      console.log(existingUsername);
+      if (existingUsername && existingUsername.userId !== userId) {
         throw new BadRequestException('Username already exists');
       }
     }
 
-    if (dto.email) {
+    if (requestPayload.email) {
       const existingEmail = await this.prisma.user.findUnique({
-        where: { email: dto.email },
+        where: { email: requestPayload.email },
       });
+      console.log(existingEmail);
       if (existingEmail && existingEmail.id !== userId) {
         throw new BadRequestException('Email already exists');
       }
     }
 
-    let stringifiedLastPlayerState;
-    let lastPlayerState;
+    console.log(`profile: ${requestPayload.profile}`);
+    let updatedProfile = { ...requestPayload.profile };
 
-    if (dto.last_player_state) {
+    if (requestPayload.profile?.lastPlayerState) {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { last_player_state: true },
+        select: { profile: { select: { lastPlayerState: true } } },
       });
 
-      stringifiedLastPlayerState = JSON.parse(
-        JSON.stringify(dto.last_player_state),
-      );
+      let existingState = {};
+      if (user?.profile?.lastPlayerState) {
+        try {
+          existingState =
+            typeof user.profile.lastPlayerState === 'string'
+              ? JSON.parse(user.profile.lastPlayerState)
+              : user.profile.lastPlayerState;
+        } catch (e) {
+          console.error('Error parsing lastPlayerState:', e);
+        }
+      }
 
-      lastPlayerState = {
-        ...(typeof user?.last_player_state === 'object' &&
-        user?.last_player_state
-          ? user.last_player_state
-          : {}),
-        ...stringifiedLastPlayerState,
+      updatedProfile.lastPlayerState = {
+        ...existingState,
+        ...requestPayload.profile.lastPlayerState,
       };
     }
 
-    const transformedDto = {
-      ...dto,
-      updated_at: new Date(),
-      ...(dto.last_player_state && { last_player_state: lastPlayerState }),
-    };
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: requestPayload.email ? { email: requestPayload.email } : {},
+      }),
+      this.prisma.profile.update({
+        where: { userId: userId },
+        data:
+          Object.keys(updatedProfile).length > 0
+            ? {
+                ...updatedProfile,
+                lastPlayerState: updatedProfile.lastPlayerState
+                  ? JSON.stringify(updatedProfile.lastPlayerState)
+                  : undefined,
+              }
+            : {},
+      }),
+    ]);
 
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: transformedDto,
-      select: {
-        id: true,
-        email: true,
-        user_name: true,
-        full_name: true,
-        avatar_url: true,
-        updated_at: true,
-      },
-    });
+    return { message: 'Profile updated successfully' };
   }
 
-  async changePassword(userId: string, dto: ChangePasswordDto) {
+  async changePassword(userId: string, requestPayload: ChangePasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -96,21 +100,22 @@ export class UserService {
     if (!user) throw new UnauthorizedException('User not found');
 
     const passwordMatches = await bcrypt.compare(
-      dto.current_password,
+      requestPayload.currentPassword,
       user.password,
     );
     if (!passwordMatches) {
       throw new BadRequestException('Current password is incorrect');
     }
 
-    const isNewPasswordSame = dto.new_password === dto.confirm_new_password;
+    const isNewPasswordSame =
+      requestPayload.newPassword === requestPayload.confirmNewPassword;
     if (!isNewPasswordSame) {
       throw new BadRequestException(
         'New password and confirm new password do not match',
       );
     }
 
-    const hashedNewPassword = await bcrypt.hash(dto.new_password, 10);
+    const hashedNewPassword = await bcrypt.hash(requestPayload.newPassword, 10);
 
     await this.prisma.user.update({
       where: { id: userId },

@@ -5,10 +5,10 @@ export class SignUpDto {
   email: string;
 
   @IsNotEmpty()
-  user_name: string;
+  userName: string;
 
   @IsNotEmpty()
-  full_name: string;
+  fullName: string;
 
   @MinLength(8)
   password: string;

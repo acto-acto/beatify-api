@@ -30,10 +30,10 @@ export class AuthController {
 
   @Post('signup')
   async signup(
-    @Body() dto: SignUpDto,
+    @Body() requestPayload: SignUpDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.signup(dto);
+    const tokens = await this.authService.signup(requestPayload);
 
     this.cookieService.setTokenCookies(
       res,
@@ -47,10 +47,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(
-    @Body() dto: LoginDto,
+    @Body() requestPayload: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.login(dto);
+    const tokens = await this.authService.login(requestPayload);
 
     this.cookieService.setTokenCookies(
       res,
@@ -94,17 +94,17 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  forgotPassword(@Body() dto: ForgotPasswordDto) {
-    return this.authService.forgotPassword(dto);
+  forgotPassword(@Body() requestPayload: ForgotPasswordDto) {
+    return this.authService.forgotPassword(requestPayload);
   }
 
   @Post('verify-otp')
-  verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto);
+  verifyOtp(@Body() requestPayload: VerifyOtpDto) {
+    return this.authService.verifyOtp(requestPayload);
   }
 
   @Post('reset-password')
-  resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
+  resetPassword(@Body() requestPayload: ResetPasswordDto) {
+    return this.authService.resetPassword(requestPayload);
   }
 }
