@@ -13,13 +13,27 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async findById(userId: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         email: true,
         profile: true,
       },
     });
+
+    if (user?.profile?.lastPlayerState) {
+      try {
+        user.profile.lastPlayerState =
+          typeof user.profile.lastPlayerState === 'string'
+            ? JSON.parse(user.profile.lastPlayerState)
+            : user.profile.lastPlayerState;
+      } catch (e) {
+        console.error('Error parsing lastPlayerState:', e);
+        user.profile.lastPlayerState = null;
+      }
+    }
+
+    return user;
   }
 
   async update(userId: string, requestPayload: UpdateUserDto) {
@@ -27,7 +41,7 @@ export class UserService {
       const existingUsername = await this.prisma.profile.findUnique({
         where: { userName: requestPayload.profile.userName },
       });
-      console.log(existingUsername);
+
       if (existingUsername && existingUsername.userId !== userId) {
         throw new BadRequestException('Username already exists');
       }
@@ -37,13 +51,12 @@ export class UserService {
       const existingEmail = await this.prisma.user.findUnique({
         where: { email: requestPayload.email },
       });
-      console.log(existingEmail);
+
       if (existingEmail && existingEmail.id !== userId) {
         throw new BadRequestException('Email already exists');
       }
     }
 
-    console.log(`profile: ${requestPayload.profile}`);
     let updatedProfile = { ...requestPayload.profile };
 
     if (requestPayload.profile?.lastPlayerState) {
@@ -53,6 +66,7 @@ export class UserService {
       });
 
       let existingState = {};
+
       if (user?.profile?.lastPlayerState) {
         try {
           existingState =
@@ -75,6 +89,7 @@ export class UserService {
         where: { id: userId },
         data: requestPayload.email ? { email: requestPayload.email } : {},
       }),
+
       this.prisma.profile.update({
         where: { userId: userId },
         data:

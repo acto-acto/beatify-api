@@ -49,16 +49,17 @@ export class UserController {
   ) {
     const refinedPayload = {
       ...requestPayload,
-      ...(requestPayload.profile && typeof requestPayload.profile === 'string'
-        ? (() => {
-            try {
-              return JSON.parse(requestPayload.profile);
-            } catch (error) {
-              console.error('Failed to parse profile JSON:', error);
-              throw new Error('Invalid profile format');
-            }
-          })()
-        : requestPayload.profile),
+      profile:
+        requestPayload.profile && typeof requestPayload.profile === 'string'
+          ? (() => {
+              try {
+                return JSON.parse(requestPayload.profile);
+              } catch (error) {
+                console.error('Failed to parse profile JSON:', error);
+                throw new Error('Invalid profile format');
+              }
+            })()
+          : requestPayload.profile || {},
     };
 
     if (file) {
@@ -71,6 +72,7 @@ export class UserController {
         const publicId = this.fileUploadService.extractPublicId(
           user?.profile.avatarUrl,
         );
+
         await this.fileUploadService.deleteFile(publicId);
       }
 
@@ -80,15 +82,10 @@ export class UserController {
           user?.profile?.userName ?? 'default-folder',
         );
 
-        if (refinedPayload.profile) {
-          refinedPayload.profile.avatarUrl = uploadedFileUrl;
-        } else {
-          refinedPayload.profile = { avatarUrl: uploadedFileUrl };
-        }
+        refinedPayload.profile.avatarUrl = uploadedFileUrl;
       }
     }
 
-    console.log(`entire refined payload: ${refinedPayload}`);
     return this.userService.update(req.user.userId, refinedPayload);
   }
 
