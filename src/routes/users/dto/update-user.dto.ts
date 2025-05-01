@@ -18,6 +18,9 @@ export class UpdateUserDto {
       playlist: Playlist | null;
       playingTrackIndex: number | null;
       isMinimised: boolean;
+      isShuffling: boolean;
+      isLooping: 'none' | 'list' | 'single';
+      speed: number;
     }>;
   }>;
 }
