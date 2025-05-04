@@ -139,4 +139,71 @@ export class UserService {
 
     return { message: 'Password updated successfully' };
   }
+
+  async getFavouriteTracks(userId: string) {
+    const favouriteTracks = await this.prisma.favouriteTrack.findMany({
+      where: { userId },
+      include: { track: true },
+    });
+
+    console.log(favouriteTracks);
+    return favouriteTracks.map((ft) => ft.track);
+  }
+
+  async addFavouriteTrack(userId: string, trackId: string) {
+    const track = await this.prisma.track.findUnique({
+      where: { id: trackId },
+    });
+    if (!track) {
+      throw new BadRequestException('Track not found');
+    }
+
+    const isFavourited = await this.prisma.favouriteTrack.findUnique({
+      where: {
+        userId_trackId: {
+          userId,
+          trackId,
+        },
+      },
+    });
+
+    if (isFavourited) {
+      throw new BadRequestException('Track already in favorites');
+    }
+
+    await this.prisma.favouriteTrack.create({
+      data: {
+        userId,
+        trackId,
+      },
+    });
+
+    return { message: 'Track added to favorites successfully' };
+  }
+
+  async removeFavouriteTrack(userId: string, trackId: string) {
+    const isFavourited = await this.prisma.favouriteTrack.findUnique({
+      where: {
+        userId_trackId: {
+          userId,
+          trackId,
+        },
+      },
+    });
+
+    if (!isFavourited) {
+      throw new BadRequestException('Track not found in favorites');
+    }
+
+    await this.prisma.favouriteTrack.delete({
+      where: {
+        userId_trackId: {
+          userId,
+          trackId,
+        },
+      },
+    });
+
+    return { message: 'Track removed from favorites successfully' };
+  }
 }

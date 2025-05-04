@@ -7,6 +7,8 @@ import {
   Request,
   UseInterceptors,
   UploadedFile,
+  Post,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -16,6 +18,7 @@ import { FileUploadService } from 'src/common/file-upload.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FavouriteTrackDto } from './dto/favourite-track.dto';
 
 @Controller('users')
 export class UserController {
@@ -90,8 +93,38 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('change-password')
+  @Patch('me/change-password')
   changePassword(@Request() req, @Body() requestPayload: ChangePasswordDto) {
     return this.userService.changePassword(req.user.userId, requestPayload);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me/favourite-tracks')
+  async getFavouriteTracks(@Request() req) {
+    return this.userService.getFavouriteTracks(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/favourite-tracks')
+  async addFavouriteTrack(
+    @Request() req,
+    @Body() requestPayload: FavouriteTrackDto,
+  ) {
+    return this.userService.addFavouriteTrack(
+      req.user.userId,
+      requestPayload.trackId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('me/favourite-tracks')
+  async removeFavouriteTrack(
+    @Request() req,
+    @Body() requestPayload: FavouriteTrackDto,
+  ) {
+    return this.userService.removeFavouriteTrack(
+      req.user.userId,
+      requestPayload.trackId,
+    );
   }
 }

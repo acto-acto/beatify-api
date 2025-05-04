@@ -43,6 +43,61 @@ export class AllTracksService {
         });
       }
 
+      const playlists = [
+        'Trending',
+        'Top Hits',
+        'Todays Picks',
+        'New Releases',
+        'For You',
+      ];
+      for (const playlistName of playlists) {
+        const randomTracks = tracks
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 40);
+
+        const playlist = await this.prisma.playlist.findFirst({
+          where: { name: playlistName },
+        });
+
+        if (playlist) {
+          for (const track of randomTracks) {
+            await this.prisma.playlistTrack.upsert({
+              where: {
+                playlistId_trackId: {
+                  playlistId: playlist.id,
+                  trackId: track.id,
+                },
+              },
+              update: {},
+              create: {
+                playlistId: playlist.id,
+                trackId: track.id,
+              },
+            });
+          }
+        } else {
+          const playlist = await this.prisma.playlist.create({
+            data: { name: playlistName },
+          });
+
+          for (const track of randomTracks) {
+            await this.prisma.playlistTrack.upsert({
+              where: {
+                playlistId_trackId: {
+                  playlistId: playlist.id,
+                  trackId: track.id,
+                },
+              },
+              update: {},
+              create: {
+                playlistId: playlist.id,
+                trackId: track.id,
+              },
+            });
+          }
+        }
+      }
+
       console.log(`Synced ${tracks.length} tracks to the database`);
     } catch (error) {
       console.error('Error syncing tracks with database:', error);
