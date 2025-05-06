@@ -21,6 +21,7 @@ export class UpdateUserDto {
       isShuffling: boolean;
       isLooping: 'none' | 'list' | 'single';
       speed: number;
+      volume: number;
     }>;
   }>;
 }
