@@ -22,17 +22,28 @@ export class AllTracksService {
   async syncTracksWithDatabase(): Promise<void> {
     try {
       const tracksFromApi = await this.fetchTracksFromJamendo();
-      const tracks = tracksFromApi.map((track) => ({
-        id: track.id,
-        name: track.name,
-        duration: track.duration,
-        audio: track.audio || null,
-        image: track.image || null,
-        artistId: track.artist_id,
-        artistName: track.artist_name,
-        albumName: track.album_name || null,
-        albumId: track.album_id || null,
-      }));
+      const tracks = await Promise.all(
+        tracksFromApi.map(async (track) => {
+          const { id, name, duration, audio, image, releasedate, artist_name } =
+            track;
+
+          const artist = await this.prisma.artist.upsert({
+            where: { name: artist_name },
+            update: {},
+            create: { name: artist_name },
+          });
+
+          return {
+            id,
+            name,
+            duration,
+            audio: audio || null,
+            image: image || null,
+            releaseDate: releasedate,
+            artistId: artist.id,
+          };
+        }),
+      );
 
       for (const track of tracks) {
         const { id, ...dataWithoutId } = track;
@@ -81,15 +92,8 @@ export class AllTracksService {
           });
 
           for (const track of randomTracks) {
-            await this.prisma.playlistTrack.upsert({
-              where: {
-                playlistId_trackId: {
-                  playlistId: playlist.id,
-                  trackId: track.id,
-                },
-              },
-              update: {},
-              create: {
+            await this.prisma.playlistTrack.create({
+              data: {
                 playlistId: playlist.id,
                 trackId: track.id,
               },
@@ -101,6 +105,7 @@ export class AllTracksService {
       console.log(`Synced ${tracks.length} tracks to the database`);
     } catch (error) {
       console.error('Error syncing tracks with database:', error);
+      throw error;
     }
   }
 
