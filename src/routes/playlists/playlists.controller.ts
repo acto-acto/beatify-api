@@ -6,10 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Request,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('playlists')
 export class PlaylistsController {
@@ -25,9 +30,14 @@ export class PlaylistsController {
     return this.playlistsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.playlistsService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @Get('playlist')
+  findOne(@Request() req, @Query('name') name?: string) {
+    if (name) {
+      return this.playlistsService.findOneByName(name, req.user.userId);
+    } else {
+      throw new BadRequestException('make sure to pass a query parameter');
+    }
   }
 
   @Patch(':id')
@@ -41,5 +51,11 @@ export class PlaylistsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.playlistsService.remove(+id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOneById(@Request() req, @Param('id') id: string) {
+    return this.playlistsService.findOneById(id, req.user.userId);
   }
 }

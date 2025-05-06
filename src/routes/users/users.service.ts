@@ -145,8 +145,6 @@ export class UserService {
       where: { userId },
       include: { track: true },
     });
-
-    console.log(favouriteTracks);
     return favouriteTracks.map((ft) => ft.track);
   }
 
