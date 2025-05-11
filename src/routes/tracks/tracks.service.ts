@@ -45,29 +45,6 @@ export class AllTracksService {
         });
       }
 
-      // const tracks = await Promise.all(
-      //   tracksFromApi.map(async (track) => {
-      //     const { id, name, duration, audio, image, releasedate, artist_name } =
-      //       track;
-
-      //     const artist = await this.prisma.artist.upsert({
-      //       where: { name: artist_name },
-      //       update: {},
-      //       create: { name: artist_name },
-      //     });
-
-      //     return {
-      //       id,
-      //       name,
-      //       duration,
-      //       audio: audio || null,
-      //       image: image || null,
-      //       releaseDate: releasedate,
-      //       artistId: artist.id,
-      //     };
-      //   }),
-      // );
-
       for (const track of tracks) {
         const { id, ...dataWithoutId } = track;
         await this.prisma.track.upsert({

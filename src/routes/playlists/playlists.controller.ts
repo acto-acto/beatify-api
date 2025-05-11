@@ -30,11 +30,10 @@ export class PlaylistsController {
     return this.playlistsService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('playlist')
-  findOne(@Request() req, @Query('name') name?: string) {
+  findOne(@Query('name') name?: string) {
     if (name) {
-      return this.playlistsService.findOneByName(name, req.user.userId);
+      return this.playlistsService.findOneByName(name);
     } else {
       throw new BadRequestException('make sure to pass a query parameter');
     }
