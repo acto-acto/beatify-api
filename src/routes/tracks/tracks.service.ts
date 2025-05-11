@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import { lastValueFrom, map } from 'rxjs';
+import { Track } from 'src/types/track';
 
 @Injectable()
 export class AllTracksService {
@@ -22,28 +23,50 @@ export class AllTracksService {
   async syncTracksWithDatabase(): Promise<void> {
     try {
       const tracksFromApi = await this.fetchTracksFromJamendo();
-      const tracks = await Promise.all(
-        tracksFromApi.map(async (track) => {
-          const { id, name, duration, audio, image, releasedate, artist_name } =
-            track;
+      let tracks: Track[] = [];
+      for (const track of tracksFromApi) {
+        const { id, name, duration, audio, image, releasedate, artist_name } =
+          track;
 
-          const artist = await this.prisma.artist.upsert({
-            where: { name: artist_name },
-            update: {},
-            create: { name: artist_name },
-          });
+        const artist = await this.prisma.artist.upsert({
+          where: { name: artist_name },
+          update: {},
+          create: { name: artist_name },
+        });
 
-          return {
-            id,
-            name,
-            duration,
-            audio: audio || null,
-            image: image || null,
-            releaseDate: releasedate,
-            artistId: artist.id,
-          };
-        }),
-      );
+        tracks.push({
+          id,
+          name,
+          duration,
+          audio: audio || null,
+          image: image || null,
+          releaseDate: releasedate,
+          artistId: artist.id,
+        });
+      }
+
+      // const tracks = await Promise.all(
+      //   tracksFromApi.map(async (track) => {
+      //     const { id, name, duration, audio, image, releasedate, artist_name } =
+      //       track;
+
+      //     const artist = await this.prisma.artist.upsert({
+      //       where: { name: artist_name },
+      //       update: {},
+      //       create: { name: artist_name },
+      //     });
+
+      //     return {
+      //       id,
+      //       name,
+      //       duration,
+      //       audio: audio || null,
+      //       image: image || null,
+      //       releaseDate: releasedate,
+      //       artistId: artist.id,
+      //     };
+      //   }),
+      // );
 
       for (const track of tracks) {
         const { id, ...dataWithoutId } = track;
