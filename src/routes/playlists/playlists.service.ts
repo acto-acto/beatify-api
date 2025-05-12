@@ -125,11 +125,15 @@ export class PlaylistsService {
           in: trackIds,
         },
       },
+      include: {
+        artist: true,
+      },
     });
 
     let updatedTracks = tracks.map((track) => ({
       ...track,
       isFavourited: false,
+      isArtistFollowed: false,
     }));
 
     if (userId) {
@@ -144,9 +148,20 @@ export class PlaylistsService {
             },
           });
 
+          const isArtistFollowed =
+            await this.prisma.userFollowArtist.findUnique({
+              where: {
+                userId_artistId: {
+                  userId,
+                  artistId: track.artist.id,
+                },
+              },
+            });
+
           return {
             ...track,
             isFavourited: !!isFavourited,
+            isArtistFollowed: !!isArtistFollowed,
           };
         }),
       );
@@ -160,11 +175,11 @@ export class PlaylistsService {
     return playlistWithTracks;
   }
 
-  update(id: number, updatePlaylistDto: UpdatePlaylistDto) {
+  update(id: string, updatePlaylistDto: UpdatePlaylistDto) {
     return `This action updates a #${id} playlist`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} playlist`;
   }
 }

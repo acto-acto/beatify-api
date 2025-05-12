@@ -204,4 +204,69 @@ export class UserService {
 
     return { message: 'Track removed from favorites successfully' };
   }
+
+  async getFollowedArtists(userId: string) {
+    const followedArtists = await this.prisma.userFollowArtist.findMany({
+      where: { userId },
+      include: { artist: true },
+    });
+    return followedArtists.map((artist) => artist.artist);
+  }
+
+  async FollowArtist(userId: string, artistId: string) {
+    const artist = await this.prisma.artist.findUnique({
+      where: { id: artistId },
+    });
+    if (!artist) {
+      throw new BadRequestException('Artist not found');
+    }
+
+    const isFollowed = await this.prisma.userFollowArtist.findUnique({
+      where: {
+        userId_artistId: {
+          userId,
+          artistId,
+        },
+      },
+    });
+
+    if (isFollowed) {
+      throw new BadRequestException('Artist is already followed');
+    }
+
+    await this.prisma.userFollowArtist.create({
+      data: {
+        userId,
+        artistId,
+      },
+    });
+
+    return { message: 'Artist has been followed successfully' };
+  }
+
+  async unfollowArtist(userId: string, artistId: string) {
+    const isFollowed = await this.prisma.userFollowArtist.findUnique({
+      where: {
+        userId_artistId: {
+          userId,
+          artistId,
+        },
+      },
+    });
+
+    if (!isFollowed) {
+      throw new BadRequestException('Artist is not followed');
+    }
+
+    await this.prisma.userFollowArtist.delete({
+      where: {
+        userId_artistId: {
+          userId,
+          artistId,
+        },
+      },
+    });
+
+    return { message: 'Artist has been unfollowed successfully' };
+  }
 }

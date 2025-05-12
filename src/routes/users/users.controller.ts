@@ -19,6 +19,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FavouriteTrackDto } from './dto/favourite-track.dto';
+import { FollowArtistDto } from './dto/follow-artist.dto';
 
 @Controller('users')
 export class UserController {
@@ -125,6 +126,33 @@ export class UserController {
     return this.userService.removeFavouriteTrack(
       req.user.userId,
       requestPayload.trackId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me/follow-artist')
+  async getFollowedArtists(@Request() req) {
+    return this.userService.getFollowedArtists(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/follow-artist')
+  async FollowArtist(@Request() req, @Body() requestPayload: FollowArtistDto) {
+    return this.userService.FollowArtist(
+      req.user.userId,
+      requestPayload.artistId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('me/follow-artist')
+  async unfollowArtist(
+    @Request() req,
+    @Body() requestPayload: FollowArtistDto,
+  ) {
+    return this.userService.unfollowArtist(
+      req.user.userId,
+      requestPayload.artistId,
     );
   }
 }
