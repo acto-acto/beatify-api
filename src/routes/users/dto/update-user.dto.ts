@@ -22,6 +22,7 @@ export class UpdateUserDto {
       isLooping: 'none' | 'list' | 'single';
       speed: number;
       volume: number;
+      trackProgress: number;
     }>;
   }>;
 }
