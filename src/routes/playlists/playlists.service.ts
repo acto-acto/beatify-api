@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -50,8 +54,11 @@ export class PlaylistsService {
     return { message: 'playlist has been created successfully' };
   }
 
-  async findAll() {
+  async findAll(userId) {
     const playlists = await this.prisma.playlist.findMany({
+      where: {
+        userId,
+      },
       orderBy: {
         name: 'asc',
       },
@@ -214,8 +221,39 @@ export class PlaylistsService {
     return playlistWithTracks;
   }
 
-  update(id: string, updatePlaylistDto: UpdatePlaylistDto) {
-    return `This action updates a #${id} playlist`;
+  async update(id: string, requestPayload: UpdatePlaylistDto, userId: string) {
+    const userOwnsplaylist = await this.prisma.playlist.findFirst({
+      where: {
+        id,
+        userId,
+      },
+    });
+
+    if (!userOwnsplaylist) {
+      throw new UnauthorizedException("You can't modify this playlist");
+    }
+
+    if (requestPayload.trackId) {
+      const trackExistsInPlaylist = await this.prisma.playlistTrack.findFirst({
+        where: {
+          playlistId: id,
+          trackId: requestPayload.trackId,
+        },
+      });
+
+      if (trackExistsInPlaylist) {
+        throw new BadRequestException('Track already exists in this playlist');
+      }
+
+      await this.prisma.playlistTrack.create({
+        data: {
+          playlistId: id,
+          trackId: requestPayload.trackId,
+        },
+      });
+    }
+
+    return { message: 'playlist has been updated successfully' };
   }
 
   remove(id: string) {

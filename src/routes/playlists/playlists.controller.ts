@@ -10,7 +10,6 @@ import {
   Request,
   Query,
   BadRequestException,
-  Optional,
 } from '@nestjs/common';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
@@ -24,9 +23,10 @@ import {
 export class PlaylistsController {
   constructor(private readonly playlistsService: PlaylistsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.playlistsService.findAll();
+  findAll(@Request() req) {
+    return this.playlistsService.findAll(req.user.userId);
   }
 
   @UseGuards(OptionalJwtAuthGuard)
@@ -45,22 +45,24 @@ export class PlaylistsController {
     return this.playlistsService.create(requestPayload, req.user.userId);
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get(':id')
+  findOneById(@Request() req, @Param('id') id: string) {
+    return this.playlistsService.findOneById(id, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
+    @Request() req,
     @Param('id') id: string,
-    @Body() updatePlaylistDto: UpdatePlaylistDto,
+    @Body() requestPayload: UpdatePlaylistDto,
   ) {
-    return this.playlistsService.update(id, updatePlaylistDto);
+    return this.playlistsService.update(id, requestPayload, req.user.userId);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.playlistsService.remove(id);
-  }
-
-  @UseGuards(OptionalJwtAuthGuard)
-  @Get(':id')
-  findOneById(@Request() req, @Param('id') id: string) {
-    return this.playlistsService.findOneById(id, req.user.userId);
   }
 }
