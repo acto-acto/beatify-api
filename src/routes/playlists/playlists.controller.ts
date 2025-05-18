@@ -15,16 +15,14 @@ import {
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
-import { OptionalJwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+} from '../auth/guards/jwt-auth.guard';
 
 @Controller('playlists')
 export class PlaylistsController {
   constructor(private readonly playlistsService: PlaylistsService) {}
-
-  @Post()
-  create(@Body() createPlaylistDto: CreatePlaylistDto) {
-    return this.playlistsService.create(createPlaylistDto);
-  }
 
   @Get()
   findAll() {
@@ -38,8 +36,13 @@ export class PlaylistsController {
       throw new BadRequestException('Make sure to pass a name query parameter');
     }
     const userId = req?.user?.userId;
-
     return this.playlistsService.findOneByName(name, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  create(@Request() req, @Body() requestPayload: CreatePlaylistDto) {
+    return this.playlistsService.create(requestPayload, req.user.userId);
   }
 
   @Patch(':id')

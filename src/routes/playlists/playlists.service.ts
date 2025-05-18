@@ -7,8 +7,47 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PlaylistsService {
   constructor(private prisma: PrismaService) {}
 
-  create(createPlaylistDto: CreatePlaylistDto) {
-    return 'This action adds a new playlist';
+  async create(payload: CreatePlaylistDto, userId: string) {
+    const existingPlaylist = await this.prisma.playlist.findFirst({
+      where: {
+        name: payload.name,
+        userId,
+      },
+    });
+
+    if (existingPlaylist) {
+      throw new BadRequestException(
+        'You already have a playlist with this name',
+      );
+    }
+
+    const newPlaylist = await this.prisma.playlist.create({
+      data: {
+        name: payload.name,
+        userId,
+      },
+    });
+
+    if (payload.trackId) {
+      const existingTrack = await this.prisma.track.findFirst({
+        where: {
+          id: payload.trackId,
+        },
+      });
+
+      if (!existingTrack) {
+        throw new BadRequestException('The provided track does not exist');
+      }
+
+      await this.prisma.playlistTrack.create({
+        data: {
+          playlistId: newPlaylist.id,
+          trackId: payload.trackId,
+        },
+      });
+    }
+
+    return { message: 'playlist has been created successfully' };
   }
 
   async findAll() {
