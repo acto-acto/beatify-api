@@ -135,6 +135,9 @@ export class PlaylistsService {
           in: trackIds,
         },
       },
+      include: {
+        artist: true,
+      },
     });
 
     const playlistsWithTracks = playlists.map((playlist) => ({
