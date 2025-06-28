@@ -54,18 +54,73 @@ export class PlaylistsService {
     return { message: 'playlist has been created successfully' };
   }
 
-  async findAll(userId) {
-    const playlists = await this.prisma.playlist.findMany({
-      where: {
-        userId,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-      include: {
-        tracks: true,
-      },
-    });
+  async findAll(userId?: string, collection?: 'user' | 'app') {
+    let playlists;
+
+    if (collection === 'user') {
+      if (!userId) {
+        throw new UnauthorizedException(
+          "You don't have access to this collection of playlists",
+        );
+      }
+      const userPlaylists = await this.prisma.playlist.findMany({
+        where: {
+          userId,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+        include: {
+          tracks: true,
+        },
+      });
+
+      playlists = userPlaylists;
+    } else if (collection === 'app') {
+      const appPlaylists = await this.prisma.playlist.findMany({
+        where: {
+          userId: null,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+        include: {
+          tracks: true,
+        },
+      });
+
+      playlists = appPlaylists;
+    } else {
+      const appPlaylists = await this.prisma.playlist.findMany({
+        where: {
+          userId: null,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+        include: {
+          tracks: true,
+        },
+      });
+
+      if (userId) {
+        const userPlaylists = await this.prisma.playlist.findMany({
+          where: {
+            userId,
+          },
+          orderBy: {
+            name: 'asc',
+          },
+          include: {
+            tracks: true,
+          },
+        });
+
+        playlists = appPlaylists.concat(userPlaylists);
+      } else {
+        playlists = appPlaylists;
+      }
+    }
 
     const trackIds = playlists.flatMap((playlist) =>
       playlist.tracks.map((playlistTrack) => playlistTrack.trackId),

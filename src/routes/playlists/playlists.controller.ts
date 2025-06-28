@@ -23,10 +23,16 @@ import {
 export class PlaylistsController {
   constructor(private readonly playlistsService: PlaylistsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @Get()
-  findAll(@Request() req) {
-    return this.playlistsService.findAll(req.user.userId);
+  findAll(@Request() req, @Query('collection') collection?: 'user' | 'app') {
+    const userId = req?.user?.userId;
+    if (collection && collection !== 'app' && collection !== 'user') {
+      throw new BadRequestException(
+        'Invalid collection type. Must be "user" or "app".',
+      );
+    }
+    return this.playlistsService.findAll(userId, collection);
   }
 
   @UseGuards(OptionalJwtAuthGuard)
