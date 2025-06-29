@@ -8,7 +8,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'https://beatify-one.vercel.app',
-      'https://beatify.actotech.dev/',
+      'https://beatify.actotech.dev',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
