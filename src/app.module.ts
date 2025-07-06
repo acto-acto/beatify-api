@@ -7,6 +7,7 @@ import { UserModule } from './routes/users/users.module';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './routes/auth/auth.module';
 import { PlaylistsModule } from './routes/playlists/playlists.module';
+import { SearchModule } from './routes/search/search.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PlaylistsModule } from './routes/playlists/playlists.module';
     AuthModule,
     CommonModule,
     PlaylistsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
