@@ -8,6 +8,7 @@ import { CommonModule } from './common/common.module';
 import { AuthModule } from './routes/auth/auth.module';
 import { PlaylistsModule } from './routes/playlists/playlists.module';
 import { SearchModule } from './routes/search/search.module';
+import { ArtistsModule } from './routes/artists/artists.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SearchModule } from './routes/search/search.module';
     CommonModule,
     PlaylistsModule,
     SearchModule,
+    ArtistsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
