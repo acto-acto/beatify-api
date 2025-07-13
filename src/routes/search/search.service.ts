@@ -33,6 +33,7 @@ export class SearchService {
         },
         include: {
           followers: true,
+          tracks: true,
         },
       }),
 
@@ -48,7 +49,13 @@ export class SearchService {
     ]).then(([tracks, albums, artists, playlists]) => ({
       tracks,
       albums,
-      artists,
+      artists: artists.map((artist) => ({
+        ...artist,
+        isFollowed: !!artist.followers.some(
+          (follower) => follower.userId === userId,
+        ),
+        followers: artist.followers.length,
+      })),
       playlists,
     }));
   }

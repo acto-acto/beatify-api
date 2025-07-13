@@ -18,6 +18,7 @@ export class ArtistsService {
         orderBy: { name: 'asc' },
         include: {
           followers: true,
+          tracks: true,
         },
       });
       return artists.map((artist) => ({
@@ -29,14 +30,8 @@ export class ArtistsService {
       artists = await this.prisma.artist.findMany({
         orderBy: { name: 'asc' },
         include: {
-          followers: {
-            where: {
-              userId: userId,
-            },
-            select: {
-              userId: true,
-            },
-          },
+          followers: true,
+          tracks: true,
         },
       });
       return artists.map((artist) => ({
