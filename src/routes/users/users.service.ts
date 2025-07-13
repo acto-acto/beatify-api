@@ -143,7 +143,7 @@ export class UserService {
   async getFavouriteTracks(userId: string) {
     const favouriteTracks = await this.prisma.favouriteTrack.findMany({
       where: { userId },
-      include: { track: true },
+      include: { track: { include: { artist: true } } },
     });
     return favouriteTracks.map((ft) => ft.track);
   }
